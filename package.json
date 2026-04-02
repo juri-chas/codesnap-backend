@@ -2,8 +2,12 @@
   "name": "codesnap-backend",
   "version": "1.0.0",
   "description": "Övningsuppgift för git inlärning",
-  "main": "index.js",
+  "type": "module",
+  "main": "dist/server.js",
   "scripts": {
+    "dev": "tsx src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -16,5 +20,21 @@
   "bugs": {
     "url": "https://github.com/juri-chas/codesnap-backend/issues"
   },
-  "homepage": "https://github.com/juri-chas/codesnap-backend#readme"
+  "homepage": "https://github.com/juri-chas/codesnap-backend#readme",
+  "dependencies": {
+    "@fastify/cors": "^11.2.0",
+    "@fastify/jwt": "^10.0.0",
+    "bcrypt": "^6.0.0",
+    "better-sqlite3": "^12.8.0",
+    "drizzle-orm": "^0.45.2",
+    "fastify": "^5.8.4"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^25.5.0",
+    "drizzle-kit": "^0.31.10",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2"
+  }
 }
