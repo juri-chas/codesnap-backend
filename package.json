@@ -2,19 +2,14 @@
   "name": "codesnap-backend",
   "version": "1.0.0",
   "description": "Övningsuppgift för git inlärning",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "dev": "next dev",
-    "dev:next": "next dev",
+    "dev": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@fastify/express": "^4.0.4",
     "fastify": "^5.8.4",
-    "fastify-healthcheck": "^5.1.0",
-    "next": "^16.2.2",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0"
+    "fastify-healthcheck": "^5.1.0"
   },
   "repository": {
     "type": "git",
