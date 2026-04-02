@@ -1,26 +1,20 @@
 const fastify = require('fastify')({ logger: true });
-const next = require('next');
 
-const dev = process.env.NODE_ENV !== 'production';
-const app = next({ dev });
-const handle = app.getRequestHandler();
+async function startServer() {
+  try {
+    // plugins
+    fastify.register(require('./src/plugins/healthcheck'));
 
-fastify.register(require('@fastify/express')).then(() => {
-  app.prepare().then(() => {
-    // Handle Next.js pages
-    fastify.all('*', (req, res) => {
-      return handle(req.raw, res.raw);
-    });
+    // routes
+    fastify.register(require('./src/routes/hello'));
 
-    // Custom Fastify routes
-    fastify.get('/api/fastify', async (request, reply) => {
-      return { message: 'Hello from Fastify!' };
-    });
+    // Start server
+    await fastify.listen({ port: 3000, host: '0.0.0.0' });
+    fastify.log.info(`Server running at http://localhost:3000`);
+  } catch (err) {
+    fastify.log.error(err);
+    process.exit(1);
+  }
+}
 
-    const port = process.env.PORT || 3000;
-    fastify.listen({ port }, (err, address) => {
-      if (err) throw err;
-      console.log(`Server listening on ${address}`);
-    });
-  });
-});
+startServer();
