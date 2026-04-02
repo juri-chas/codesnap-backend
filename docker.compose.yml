@@ -1,0 +1,26 @@
+version: '3.9'
+services:
+ postgres:
+   image: postgres:16-alpine
+   container_name: postgres
+   restart: unless-stopped
+   ports:
+     - "5432:5432"
+   env_file:
+     - .env
+   volumes:
+     - postgres_data:/var/lib/postgresql/data
+     - ./init-scripts:/docker-entrypoint-initdb.d:ro
+ pgadmin:
+   image: dpage/pgadmin4
+   container_name: my_pgadmin
+   restart: unless-stopped
+   ports:
+     - "5050:80"
+   environment:
+     PGADMIN_DEFAULT_EMAIL: admin@example.com
+     PGADMIN_DEFAULT_PASSWORD: admin123
+   depends_on:
+     - postgres
+volumes:
+ postgres_data:
