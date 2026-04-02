@@ -1,0 +1,20 @@
+{
+  "name": "codesnap-backend",
+  "version": "1.0.0",
+  "description": "Övningsuppgift för git inlärning",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/juri-chas/codesnap-backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/juri-chas/codesnap-backend/issues"
+  },
+  "homepage": "https://github.com/juri-chas/codesnap-backend#readme"
+}
