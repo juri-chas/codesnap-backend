@@ -9,9 +9,14 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "fastify": "^5.8.4",
-    "fastify-healthcheck": "^5.1.0",
-    "typescript": "^6.0.2"
+    "@fastify/jwt": "^10.0.0",
+    "bcrypt": "6.0.0",
+    "dotenv": "^17.4.1",
+    "drizzle-orm": "0.45.2",
+    "fastify": "5.8.4",
+    "fastify-healthcheck": "5.1.0",
+    "pg": "8.20.0",
+    "typescript": "6.0.2"
   },
   "repository": {
     "type": "git",
@@ -25,7 +30,8 @@
   },
   "homepage": "https://github.com/juri-chas/codesnap-backend#readme",
   "devDependencies": {
-    "@types/node": "^25.5.2",
-    "ts-node": "^10.9.2"
+    "@types/node": "25.5.2",
+    "@types/pg": "8.20.0",
+    "ts-node": "10.9.2"
   }
 }

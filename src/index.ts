@@ -1,102 +1,104 @@
-import fastify from 'fastify';
+import fastify, { FastifyInstance } from "fastify";
 import { FastifyRequest, FastifyReply } from "fastify";
-import bcrypt from "bcrypt";
-import { db } from "../db/index.js";
-import { users } from "../db/schema.js";
+import fastifyJwt from "@fastify/jwt";
+import { drizzle } from "drizzle-orm/node-postgres";
 import { eq } from "drizzle-orm";
+import { Pool } from "pg";
+import bcrypt from "bcrypt";
+import 'dotenv/config';
+
+import { pgTable, serial, varchar, text } from "drizzle-orm/pg-core";
+
+export const users = pgTable("users", {
+  id: serial("user_id").primaryKey(),
+  username: varchar("username", { length: 255 }).notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+});
+
+const pool = new Pool({
+  host: process.env.DB_HOST || "localhost",
+  port: parseInt(process.env.DB_PORT || "5432"),
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+});
+
+const db = drizzle(pool);
 
 const server = fastify({ logger: true });
 const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
-server.get('/health', async () => {
+server.register(fastifyJwt, { secret: process.env.JWT_SECRET || "your-secret-key" });
+
+server.get("/health", async () => {
   return {
-    status: 'ok',
-    timestamp: new Date().toISOString()
+    status: "ok",
+    timestamp: new Date().toISOString(),
   };
 });
 
-
-const start = async () => {
-  try {
-    await server.listen({ port, host: '0.0.0.0' });
-    console.log(`Server listening on http://localhost:${port}`);
-  } catch (err) {
-    server.log.error(err);
-    process.exit(1);
-  }
-};
-
-
-
 interface RegisterBody {
   username: string;
-  email: string;
   password: string;
 }
 
 interface LoginBody {
-  email: string;
+  username: string;
   password: string;
 }
 
 export async function register(
   request: FastifyRequest<{ Body: RegisterBody }>,
-  reply: FastifyReply
+  reply: FastifyReply,
 ) {
-  const { username, email, password } = request.body;
+  const { username, password } = request.body;
 
-  const existing = db
-    .select()
-    .from(users)
-    .where(eq(users.email, email))
-    .get();
-
-  const existingUsername = db
+  const existingUsername = (await db
     .select()
     .from(users)
     .where(eq(users.username, username))
-    .get();
-
-  if (existing || existingUsername) {
-    return reply.status(409).send({ error: "Email or username already in use" });
-  }
+    )[0];
 
   const passwordHash = await bcrypt.hash(password, 10);
 
-  const result = db
+  const result = (await db
     .insert(users)
-    .values({ username, email, passwordHash })
-    .returning({ id: users.id, username: users.username, email: users.email })
-    .get();
+    .values({ username, passwordHash })
+    .returning({ id: users.id, username: users.username })
+    )[0];
 
   return reply.status(201).send(result);
 }
 
 export async function login(
   request: FastifyRequest<{ Body: LoginBody }>,
-  reply: FastifyReply
+  reply: FastifyReply,
 ) {
-  const { email, password } = request.body;
+  const { username, password } = request.body;
 
-  const user = db.select().from(users).where(eq(users.email, email)).get();
+  const user = (await db.select().from(users).where(eq(users.username, username)))[0];
 
   if (!user) {
-    return reply.status(401).send({ error: "Invalid email or password" });
+    return reply.status(401).send({ error: "Invalid username or password" });
   }
 
   const valid = await bcrypt.compare(password, user.passwordHash);
   if (!valid) {
-    return reply.status(401).send({ error: "Invalid email or password" });
+    return reply.status(401).send({ error: "Invalid username or password" });
   }
 
-  const token = request.server.jwt.sign({ id: user.id, username: user.username });
+  const token = request.server.jwt.sign({
+    id: user.id,
+    username: user.username,
+  });
 
   return reply.send({ token });
 }
 
-import { FastifyRequest, FastifyReply } from "fastify";
-
-export async function AuthenticateUser(request: FastifyRequest, reply: FastifyReply) {
+export async function AuthenticateUser(
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
   try {
     await (request as any).jwtVerify();
   } catch {
@@ -108,5 +110,17 @@ export async function authRoutes(app: FastifyInstance) {
   app.post("/auth/register", register);
   app.post("/auth/login", login);
 }
+
+const start = async () => {
+  try {
+    await server.listen({ port, host: "0.0.0.0" });
+    console.log(`Server listening on http://localhost:${port}`);
+  } catch (err) {
+    server.log.error(err);
+    process.exit(1);
+  }
+};
+
+authRoutes(server);
 
 start();
