@@ -4,12 +4,14 @@
   "description": "Övningsuppgift för git inlärning",
   "main": "server.js",
   "scripts": {
-    "dev": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "ts-node src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
   },
   "dependencies": {
     "fastify": "^5.8.4",
-    "fastify-healthcheck": "^5.1.0"
+    "fastify-healthcheck": "^5.1.0",
+    "typescript": "^6.0.2"
   },
   "repository": {
     "type": "git",
@@ -21,5 +23,9 @@
   "bugs": {
     "url": "https://github.com/juri-chas/codesnap-backend/issues"
   },
-  "homepage": "https://github.com/juri-chas/codesnap-backend#readme"
+  "homepage": "https://github.com/juri-chas/codesnap-backend#readme",
+  "devDependencies": {
+    "@types/node": "^25.5.2",
+    "ts-node": "^10.9.2"
+  }
 }
