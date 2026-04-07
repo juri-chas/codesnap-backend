@@ -13,37 +13,33 @@ export async function getUserProfile(
 ) {
   const { username } = request.params;
 
-  const user = db.select().from(users).where(eq(users.username, username)).get();
+  const [user] = await db.select().from(users).where(eq(users.username, username));
   if (!user) return reply.status(404).send({ error: "User not found" });
 
-  const userSnippets = db
-    .select()
-    .from(snippets)
-    .where(eq(snippets.userId, user.id))
-    .all();
+  const userSnippets = await db.select().from(snippets).where(eq(snippets.userId, user.id));
 
-  const snippetList = userSnippets.map((s) => {
-    const tagRows = db
-      .select({ name: tags.name })
-      .from(snippetTags)
-      .innerJoin(tags, eq(tags.id, snippetTags.tagId))
-      .where(eq(snippetTags.snippetId, s.id))
-      .all();
-    const starCount = db
-      .select({ count: sql<number>`count(*)` })
-      .from(stars)
-      .where(eq(stars.snippetId, s.id))
-      .get();
+  const snippetList = await Promise.all(
+    userSnippets.map(async (s) => {
+      const tagRows = await db
+        .select({ name: tags.name })
+        .from(snippetTags)
+        .innerJoin(tags, eq(tags.id, snippetTags.tagId))
+        .where(eq(snippetTags.snippetId, s.id));
+      const [starCount] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(stars)
+        .where(eq(stars.snippetId, s.id));
 
-    return {
-      id: s.id,
-      title: s.title,
-      language: s.language,
-      tags: tagRows.map((t) => t.name),
-      stars: starCount?.count ?? 0,
-      createdAt: s.createdAt,
-    };
-  });
+      return {
+        id: s.id,
+        title: s.title,
+        language: s.language,
+        tags: tagRows.map((t) => t.name),
+        stars: Number(starCount?.count ?? 0),
+        createdAt: s.createdAt,
+      };
+    })
+  );
 
   return reply.send({
     username: user.username,
@@ -63,12 +59,11 @@ export async function updateMe(
     return reply.status(400).send({ error: "Bio cannot exceed 300 characters" });
   }
 
-  const updated = db
+  const [updated] = await db
     .update(users)
     .set({ bio: bio ?? "" })
     .where(eq(users.id, userId))
-    .returning({ username: users.username, bio: users.bio })
-    .get();
+    .returning({ username: users.username, bio: users.bio });
 
   return reply.send(updated);
 }
