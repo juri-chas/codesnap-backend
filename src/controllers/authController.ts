@@ -21,29 +21,23 @@ export async function register(
 ) {
   const { username, email, password } = request.body;
 
-  const existing = db
-    .select()
-    .from(users)
-    .where(eq(users.email, email))
-    .get();
+  if (!username || !email || !password) {
+    return reply.status(400).send({ error: "username, email and password are required" });
+  }
 
-  const existingUsername = db
-    .select()
-    .from(users)
-    .where(eq(users.username, username))
-    .get();
+  const [existingEmail] = await db.select().from(users).where(eq(users.email, email));
+  const [existingUsername] = await db.select().from(users).where(eq(users.username, username));
 
-  if (existing || existingUsername) {
+  if (existingEmail || existingUsername) {
     return reply.status(409).send({ error: "Email or username already in use" });
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
 
-  const result = db
+  const [result] = await db
     .insert(users)
     .values({ username, email, passwordHash })
-    .returning({ id: users.id, username: users.username, email: users.email })
-    .get();
+    .returning({ id: users.id, username: users.username, email: users.email });
 
   return reply.status(201).send(result);
 }
@@ -54,7 +48,11 @@ export async function login(
 ) {
   const { email, password } = request.body;
 
-  const user = db.select().from(users).where(eq(users.email, email)).get();
+  if (!email || !password) {
+    return reply.status(400).send({ error: "email and password are required" });
+  }
+
+  const [user] = await db.select().from(users).where(eq(users.email, email));
 
   if (!user) {
     return reply.status(401).send({ error: "Invalid email or password" });
@@ -66,6 +64,5 @@ export async function login(
   }
 
   const token = request.server.jwt.sign({ id: user.id, username: user.username });
-
   return reply.send({ token });
 }
