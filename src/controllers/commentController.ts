@@ -19,14 +19,13 @@ export async function createComment(
     return reply.status(400).send({ error: "Comment text cannot be empty" });
   }
 
-  const snippet = db.select().from(snippets).where(eq(snippets.id, snippetId)).get();
+  const [snippet] = await db.select().from(snippets).where(eq(snippets.id, snippetId));
   if (!snippet) return reply.status(404).send({ error: "Snippet not found" });
 
-  const comment = db
+  const [comment] = await db
     .insert(comments)
     .values({ snippetId, userId, text: text.trim() })
-    .returning()
-    .get();
+    .returning();
 
   return reply.status(201).send(comment);
 }
@@ -37,25 +36,26 @@ export async function getComments(
 ) {
   const snippetId = parseInt(request.params.id);
 
-  const snippet = db.select().from(snippets).where(eq(snippets.id, snippetId)).get();
+  const [snippet] = await db.select().from(snippets).where(eq(snippets.id, snippetId));
   if (!snippet) return reply.status(404).send({ error: "Snippet not found" });
 
-  const rows = db
+  const rows = await db
     .select()
     .from(comments)
     .where(eq(comments.snippetId, snippetId))
-    .orderBy(asc(comments.createdAt))
-    .all();
+    .orderBy(asc(comments.createdAt));
 
-  const result = rows.map((c) => {
-    const user = db.select({ username: users.username }).from(users).where(eq(users.id, c.userId)).get();
-    return {
-      id: c.id,
-      text: c.text,
-      username: user?.username ?? null,
-      createdAt: c.createdAt,
-    };
-  });
+  const result = await Promise.all(
+    rows.map(async (c) => {
+      const [user] = await db.select({ username: users.username }).from(users).where(eq(users.id, c.userId));
+      return {
+        id: c.id,
+        text: c.text,
+        username: user?.username ?? null,
+        createdAt: c.createdAt,
+      };
+    })
+  );
 
   return reply.send(result);
 }
