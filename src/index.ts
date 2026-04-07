@@ -6,7 +6,6 @@ import { eq } from "drizzle-orm";
 import { Pool } from "pg";
 import bcrypt from "bcrypt";
 import 'dotenv/config';
-
 import { pgTable, serial, varchar, text } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
