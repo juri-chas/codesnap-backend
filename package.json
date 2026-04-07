@@ -8,6 +8,8 @@
     "dev": "tsx src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -25,13 +27,13 @@
     "@fastify/cors": "^11.2.0",
     "@fastify/jwt": "^10.0.0",
     "bcrypt": "^6.0.0",
-    "better-sqlite3": "^12.8.0",
+    "dotenv": "^17.4.1",
     "drizzle-orm": "^0.45.2",
-    "fastify": "^5.8.4"
+    "fastify": "^5.8.4",
+    "postgres": "^3.4.9"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
-    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^25.5.0",
     "drizzle-kit": "^0.31.10",
     "tsx": "^4.21.0",
